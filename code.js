@@ -9,7 +9,7 @@ function sendMessageToChatWork() {
   for (var i = 0; i < events.length; i++) {
     const event = events[i];
 
-    if (!event.eventStartDate) {
+    if (! event.eventStartDate) {
       allDayScheduleText = allDayScheduleText + 'タイトル：' + event.title + '　作成者：' + event.creator + '\n';
       continue;
     }
@@ -32,16 +32,17 @@ function sendMessageToChatWork() {
     sendText = sendText + '[/info]';
   }
 
-  if (allDayScheduleText === '[info][title]終日予定[/title]') {
-    allDayScheduleText = '';
-  } else {
-    allDayScheduleText = allDayScheduleText + '[/info]';
+  
+  if(allDayScheduleText==='[info][title]終日予定[/title]'){
+    allDayScheduleText='';
+  }else{
+    allDayScheduleText=allDayScheduleText + '[/info]';
   }
 
   sendText = sendText + allDayScheduleText;
 
-  const client = ChatWorkClient.factory({token: 'c4c571858b7c40896b67487c1612152a'});
-  client.sendMessage({room_id: '96421512', body: sendText});
+  const client = ChatWorkClient.factory({ token: 'c4c571858b7c40896b67487c1612152a' });
+  client.sendMessage({ room_id: '96421512', body: sendText });
 }
 
 function getEventListFromUsers(users) {
@@ -50,13 +51,10 @@ function getEventListFromUsers(users) {
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  const minTime = now.toLocaleTimeString('en-US', {hour12: false});
   let date = Utilities.formatDate(now, timezone, RFC3339format);
   const timeMin = Utilities.formatString('%s', date);
 
   now.setHours(23, 59, 59, 59);
-  const maxTime = now.toLocaleTimeString('en-US', {hour12: false});
-
   date = Utilities.formatDate(now, timezone, RFC3339format);
   const timeMax = Utilities.formatString('%s', date);
 
@@ -79,15 +77,20 @@ function getEventListFromUsers(users) {
       let event = eventsFromUser.items[ii];
       let eventInfo = {};
       eventInfo.title = event.summary;
+      if(!event.creator){
+        continue;
+      }
+      Logger.log(event);
       eventInfo.creator = findUserFullName(users, event.creator.email, '');
       eventInfo.user = user.email;
+
 
       // 時間指定のイベントの場合、開始時間を格納
       if (event.start.dateTime) {
         const eventStartDate = new Date(event.start.dateTime);
-        eventInfo.eventStartDate = eventStartDate.toLocaleTimeString('en-US', {hour12: false});
+        eventInfo.eventStartDate = eventStartDate.toLocaleTimeString('en-US', { hour12: false });
         const eventEndDate = new Date(event.end.dateTime);
-        eventInfo.eventEndDate = eventEndDate.toLocaleTimeString('en-US', {hour12: false});
+        eventInfo.eventEndDate = eventEndDate.toLocaleTimeString('en-US', { hour12: false });
       }
 
       // イベントに他の参加者がいる場合
@@ -140,10 +143,12 @@ function listAllUsers() {
   const users = page.users;
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
-    result.push({name: user.name.fullName, email: user.primaryEmail});
+    result.push({ name: user.name.fullName, email: user.primaryEmail });
   }
+  pageToken = page.nextPageToken;
   return result;
 }
+
 
 // null含むソート
 function alphabetically(ascending) {
